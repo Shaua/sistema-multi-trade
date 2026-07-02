@@ -9,11 +9,7 @@ import os
 import urllib.request
 
 def keep_alive_ping():
-    app_url = os.getenv("APP_URL")
-    if not app_url:
-        print("[Keep-Alive] APP_URL não configurada. Tentando localhost.")
-        port = os.getenv("PORT", "8000")
-        app_url = f"http://localhost:{port}"
+    app_url = os.getenv("APP_URL", "https://sistema-multi-trade.onrender.com")
     
     url = f"{app_url.rstrip('/')}/health"
     print(f"[Keep-Alive] Pingando {url} para evitar inatividade...")
