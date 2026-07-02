@@ -183,6 +183,7 @@ async def trading_loop():
                         estrategias_ativas.append(TrendFollowingStrategy(a, sensitivity))
                     else:
                         estrategias_ativas.append(MomentumBreakoutStrategy(a, sensitivity))
+                        estrategias_ativas.append(MeanReversionStrategy(a, sensitivity))
 
                 for strategy in estrategias_ativas:
                     try:
@@ -352,7 +353,7 @@ async def trading_loop():
                         print(f"[TradingLoop] Erro ao analisar ativo {strategy.asset}: {e}")
 
                     # Pequena pausa para evitar sobrecarga de requisições concorrentes nas APIs (Rate Limit por segundo)
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(0.5)
 
             db.commit()
 
