@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, TrendingUp, DollarSign, ShieldAlert, BarChart3, LayoutDashboard, Settings, History, ChevronRight } from 'lucide-react';
+import { Activity, TrendingUp, DollarSign, ShieldAlert, BarChart3, LayoutDashboard, Settings, History } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { apiFetch, getAuthToken, setAuthToken, removeAuthToken } from './api';
 import Login from './Login';
