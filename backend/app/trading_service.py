@@ -184,7 +184,6 @@ async def trading_loop():
                     else:
                         estrategias_ativas.append(MomentumBreakoutStrategy(a, sensitivity))
                         estrategias_ativas.append(MeanReversionStrategy(a, sensitivity))
-                        estrategias_ativas.append(TrendFollowingStrategy(a, sensitivity))
 
                 for strategy in estrategias_ativas:
                     try:
