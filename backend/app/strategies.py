@@ -62,7 +62,7 @@ class MomentumBreakoutStrategy(BaseStrategy):
     Se perder a mínima, envia SHORT.
     """
     def __init__(self, asset: str, sensitivity: float = 0.01):
-        super().__init__(asset, "5m")
+        super().__init__(asset, "15m")
         # Menor sensibilidade (0.005) -> mais agressivo -> menor lookback
         # Base = 20 para 0.01
         self.lookback_period = max(5, int(20 * (sensitivity / 0.01)))
