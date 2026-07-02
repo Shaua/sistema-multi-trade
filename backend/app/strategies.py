@@ -90,14 +90,14 @@ class MomentumBreakoutStrategy(BaseStrategy):
             last_closed_volume = historical_data[-2][5] if len(historical_data) > 1 else 0
             
             # Condição de rompimento com Filtro de Distância / Pullback
-            # O preço precisa ter rompido, mas não pode estar distante mais de 0.2%
+            # O preço precisa ter rompido, mas não pode estar distante mais de 1.0% do rompimento para evitar comprar topo extremo
             if current_price > resistance:
-                if current_price <= resistance * 1.002:
+                if current_price <= resistance * 1.01:
                     signal = "LONG"
                 else:
                     metric_str = f"Rompimento LONG muito distante (Aguardando Pullback)"
             elif current_price < support:
-                if current_price >= support * 0.998:
+                if current_price >= support * 0.99:
                     signal = "SHORT"
                 else:
                     metric_str = f"Rompimento SHORT muito distante (Aguardando Pullback)"
