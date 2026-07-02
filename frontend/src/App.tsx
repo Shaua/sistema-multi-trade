@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, TrendingUp, DollarSign, ShieldAlert, BarChart3, LayoutDashboard, Settings, History } from 'lucide-react';
+import { Activity, TrendingUp, DollarSign, ShieldAlert, BarChart3, LayoutDashboard, Settings, History, Menu, X } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { apiFetch, getAuthToken, setAuthToken, removeAuthToken } from './api';
 import Login from './Login';
@@ -366,7 +366,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!getAuthToken());
-
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   useEffect(() => {
     const handleAuthError = () => {
       setIsAuthenticated(false);
@@ -434,9 +434,40 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-slate-50 flex">
+    <div className="min-h-screen bg-[#0f172a] text-slate-50 flex flex-col md:flex-row">
+      {/* Mobile Top Bar */}
+      <div className="md:hidden bg-[#1e293b] border-b border-slate-800 p-4 flex items-center justify-between sticky top-0 z-50">
+        <div className="flex items-center gap-3">
+          <Activity className="text-blue-500" size={24} />
+          <h1 className="text-lg font-bold tracking-wider">AI TRADER</h1>
+        </div>
+        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-slate-400 hover:text-white">
+          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {/* Mobile Menu Dropdown */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 top-[65px] bg-[#0f172a] z-40 p-4 flex flex-col gap-2 overflow-y-auto pb-24">
+          <NavItem icon={<LayoutDashboard />} label="Dashboard" active={activeTab === 'dashboard'} onClick={() => {setActiveTab('dashboard'); setMobileMenuOpen(false);}} />
+          <NavItem icon={<History />} label="Histórico" active={activeTab === 'history'} onClick={() => {setActiveTab('history'); setMobileMenuOpen(false);}} />
+          <NavItem icon={<Activity />} label="Backtesting" active={activeTab === 'backtesting'} onClick={() => {setActiveTab('backtesting'); setMobileMenuOpen(false);}} />
+          <NavItem icon={<TrendingUp />} label="Mercados" active={activeTab === 'markets'} onClick={() => {setActiveTab('markets'); setMobileMenuOpen(false);}} />
+          <NavItem icon={<BarChart3 />} label="Métricas" active={activeTab === 'metrics'} onClick={() => {setActiveTab('metrics'); setMobileMenuOpen(false);}} />
+          <NavItem icon={<ShieldAlert />} label="Risco" active={activeTab === 'risco'} onClick={() => {setActiveTab('risco'); setMobileMenuOpen(false);}} />
+          <NavItem icon={<Settings />} label="Configurações" active={activeTab === 'configuracoes'} onClick={() => {setActiveTab('configuracoes'); setMobileMenuOpen(false);}} />
+          
+          <button 
+              onClick={handleLogout}
+              className="mt-4 text-sm text-slate-400 hover:text-white px-3 py-3 border border-slate-700 hover:border-slate-500 hover:bg-slate-800 rounded-lg transition-colors flex justify-center w-full"
+            >
+              Sair do Sistema
+          </button>
+        </div>
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-[#1e293b] border-r border-slate-800 p-6 flex flex-col hidden md:flex">
+      <aside className="w-64 bg-[#1e293b] border-r border-slate-800 p-6 flex-col hidden md:flex shrink-0">
         <div className="flex items-center gap-3 mb-10">
           <Activity className="text-blue-500" size={28} />
           <h1 className="text-xl font-bold tracking-wider">AI TRADER</h1>
@@ -470,7 +501,7 @@ function App() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 p-4 md:p-8 overflow-y-auto">
         {activeTab === 'dashboard' && (
           <>
             {risk?.protection_level && risk.protection_level !== 'NORMAL' && (
@@ -489,12 +520,12 @@ function App() {
                 </div>
               </div>
             )}
-            <header className="flex justify-between items-center mb-8">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
               <div>
                 <h2 className="text-3xl font-semibold mb-1">Visão Geral</h2>
                 <p className="text-slate-400">Resumo da performance da sua carteira e risco global.</p>
               </div>
-              <div className="flex gap-4">
+              <div className="flex flex-wrap gap-4 w-full md:w-auto">
                 <button 
                   onClick={async () => {
                     if (window.confirm("🚨 TEM CERTEZA? Isso vai fechar TODAS as posições a mercado agora e pausar o robô!")) {
@@ -510,11 +541,11 @@ function App() {
                       }
                     }
                   }}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all shadow-lg shadow-red-600/30 font-bold flex items-center gap-2 animate-pulse hover:animate-none">
-                  <ShieldAlert size={18} /> ZERAR TUDO (PÂNICO)
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all shadow-lg shadow-red-600/30 font-bold flex items-center gap-2 animate-pulse hover:animate-none flex-1 md:flex-none justify-center">
+                  <ShieldAlert size={18} /> ZERAR TUDO
                 </button>
-                <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-lg shadow-blue-500/20 font-medium">
-                  Relatório Diário
+                <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-lg shadow-blue-500/20 font-medium flex-1 md:flex-none justify-center">
+                  Relatório
                 </button>
               </div>
             </header>
@@ -552,7 +583,7 @@ function App() {
 
         {activeTab === 'markets' && (
           <>
-            <header className="flex justify-between items-center mb-8">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
               <div>
                 <h2 className="text-3xl font-semibold mb-1">Mercados e Posições</h2>
                 <p className="text-slate-400">Monitoramento em tempo real dos ativos que o robô está posicionado.</p>
@@ -587,7 +618,7 @@ function App() {
 
         {activeTab === 'history' && (
           <>
-            <header className="flex justify-between items-center mb-8">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
               <div>
                 <h2 className="text-3xl font-semibold mb-1">Histórico de Operações</h2>
                 <p className="text-slate-400">Registro completo de todos os trades fechados.</p>
