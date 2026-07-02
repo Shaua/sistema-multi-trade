@@ -5,6 +5,27 @@ from .ai_engine import ai_engine
 from .notifications import notifier
 from .database import SessionLocal
 from .models import Account, Trade
+import os
+import urllib.request
+
+def keep_alive_ping():
+    app_url = os.getenv("APP_URL")
+    if not app_url:
+        print("[Keep-Alive] APP_URL não configurada. Tentando localhost.")
+        port = os.getenv("PORT", "8000")
+        app_url = f"http://localhost:{port}"
+    
+    url = f"{app_url.rstrip('/')}/health"
+    print(f"[Keep-Alive] Pingando {url} para evitar inatividade...")
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': 'KeepAliveBot/1.0'})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            if response.status == 200:
+                print("[Keep-Alive] Sucesso!")
+            else:
+                print(f"[Keep-Alive] Resposta inesperada: {response.status}")
+    except Exception as e:
+        print(f"[Keep-Alive] Erro ao pingar {url}: {e}")
 
 async def send_morning_report():
     print("[Scheduler] Gerando relatório matinal...")
@@ -62,5 +83,14 @@ def start_scheduler():
         replace_existing=True
     )
     
+    # Executa a cada 10 minutos para evitar inatividade
+    scheduler.add_job(
+        keep_alive_ping,
+        'interval',
+        minutes=10,
+        id="keep_alive_job",
+        replace_existing=True
+    )
+    
     scheduler.start()
-    print("[Scheduler] Iniciado. Relatórios agendados para 08:00 e 20:00.")
+    print("[Scheduler] Iniciado. Relatórios agendados para 08:00 e 20:00. Keep-alive a cada 10 minutos.")

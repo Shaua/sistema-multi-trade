@@ -9,6 +9,8 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: APP_URL
+        sync: false
       - key: DATABASE_URL
         sync: false
       - key: BINANCE_API_KEY

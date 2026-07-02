@@ -4,11 +4,13 @@ from dotenv import load_dotenv
 env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env')
 load_dotenv(dotenv_path=env_path)
 
-from fastapi import FastAPI, Depends, BackgroundTasks
+from fastapi import FastAPI, Depends, BackgroundTasks, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 import asyncio
+import traceback
 
 from .database import engine, Base, get_db
 from . import models
@@ -35,8 +37,24 @@ app.add_middleware(
 
 app.include_router(auth_router)
 
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    error_msg = f"Erro não tratado na rota {request.url.path}: {str(exc)}\n\n```python\n{traceback.format_exc()[-1000:]}\n```"
+    from .notifications import notifier
+    asyncio.create_task(notifier.send_alert("⚠️ Erro Crítico no Sistema", error_msg, level="CRITICAL"))
+    return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    from .notifications import notifier
+    await notifier.send_alert("🛑 Sistema Desligado", "O backend do Multi Trade está sendo desligado/inativo.", level="WARNING")
+
 @app.on_event("startup")
 async def startup_event():
+    # Notificação de Inicialização
+    from .notifications import notifier
+    asyncio.create_task(notifier.send_alert("🚀 Sistema Iniciado", "O backend do Multi Trade está ativo e online.", level="INFO"))
+
     # Inicializa conta se não existir
     db = next(get_db())
     account = db.query(models.Account).first()
