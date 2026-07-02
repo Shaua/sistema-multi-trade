@@ -184,6 +184,7 @@ async def trading_loop():
                     else:
                         estrategias_ativas.append(MomentumBreakoutStrategy(a, sensitivity))
                         estrategias_ativas.append(MeanReversionStrategy(a, sensitivity))
+                        estrategias_ativas.append(TrendFollowingStrategy(a, sensitivity))
 
                 for strategy in estrategias_ativas:
                     try:
@@ -198,7 +199,7 @@ async def trading_loop():
                         async for attempt in AsyncRetrying(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10)):
                             with attempt:
                                 current_price = await broker.get_current_price(strategy.asset)
-                                historical_data = await broker.fetch_ohlcv(strategy.asset, strategy.timeframe, limit=60)
+                                historical_data = await broker.fetch_ohlcv(strategy.asset, strategy.timeframe, limit=300)
 
                         # Filtro Anti-Spike
                         last_price = _last_valid_price.get(strategy.asset)
