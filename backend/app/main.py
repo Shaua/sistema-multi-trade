@@ -274,6 +274,21 @@ def get_trade_history(db: Session = Depends(get_db), current_user: str = Depends
     ).order_by(models.Trade.closed_at.desc()).limit(50).all()
     return trades
 
+@app.delete("/api/trades/cleanup_bugged")
+def cleanup_bugged_trades(db: Session = Depends(get_db), current_user: str = Depends(get_current_user)):
+    """Remove operações abertas bugadas onde o SL/TP foi calculado errado."""
+    open_trades = db.query(models.Trade).filter(models.Trade.status == "OPEN").all()
+    count = 0
+    for t in open_trades:
+        # Se a diferença percentual entre o preço de entrada e o SL for maior que 20%, provavelmente foi erro
+        if t.entry_price and t.stop_loss:
+            diff_pct = abs(t.entry_price - t.stop_loss) / t.entry_price
+            if diff_pct > 0.2:  # Mais de 20% de diferença é absurdo
+                db.delete(t)
+                count += 1
+    db.commit()
+    return {"message": f"{count} trades bugados foram removidos com sucesso."}
+
 @app.delete("/api/trades/{trade_id}")
 def delete_trade(trade_id: int, db: Session = Depends(get_db), current_user: str = Depends(get_current_user)):
     """Deleta um trade do histórico."""

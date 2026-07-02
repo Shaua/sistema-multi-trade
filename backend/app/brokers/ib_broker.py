@@ -63,10 +63,10 @@ class IBBroker(BaseBroker):
             history = await asyncio.to_thread(ticker.history, period="5d")
             if not history.empty:
                 return float(history['Close'].iloc[-1])
-            return 5200.0
+            raise ValueError(f"Sem dados de preço para {symbol}")
         except Exception as e:
             print(f"[IB/YFinance] Erro ao buscar preço de {symbol}: {e}")
-            return 5200.0 # Mock fallback
+            raise # Lança o erro em vez de retornar valor mockado para não bugar o SL/TP
 
     async def place_market_order(self, symbol: str, side: str, volume: float) -> dict:
         print(f"[IB Paper] Executando ordem SIMULADA {side} a Mercado. Ativo: {symbol}, Lotes: {volume}")
