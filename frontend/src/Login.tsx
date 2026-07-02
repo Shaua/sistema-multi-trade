@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Lock, Shield, ArrowRight } from 'lucide-react';
+import { BASE_URL } from './api';
 
 interface LoginProps {
   onLogin: (token: string) => void;
@@ -21,7 +22,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       formData.append('username', username);
       formData.append('password', password);
 
-      const res = await fetch('http://localhost:8000/api/login', {
+      const res = await fetch(`${BASE_URL}/api/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',

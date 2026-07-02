@@ -2,6 +2,8 @@ export const getAuthToken = () => localStorage.getItem('token');
 export const setAuthToken = (token: string) => localStorage.setItem('token', token);
 export const removeAuthToken = () => localStorage.removeItem('token');
 
+export const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 export const apiFetch = async (url: string, options: RequestInit = {}) => {
   const token = getAuthToken();
   const headers = new Headers(options.headers || {});
@@ -10,7 +12,9 @@ export const apiFetch = async (url: string, options: RequestInit = {}) => {
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  const response = await fetch(url, {
+  const finalUrl = url.replace('http://localhost:8000', BASE_URL);
+
+  const response = await fetch(finalUrl, {
     ...options,
     headers
   });
