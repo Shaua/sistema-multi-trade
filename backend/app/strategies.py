@@ -16,7 +16,7 @@ class MeanReversionStrategy(BaseStrategy):
     Lógica: Identificar movimentos extremos afastados da média móvel.
     """
     def __init__(self, asset: str, sensitivity: float = 0.01):
-        super().__init__(asset, "15m")
+        super().__init__(asset, "1h")
         self.moving_average = 0.0
         self.deviation_threshold = sensitivity
         self.ma_period = 20
@@ -62,7 +62,7 @@ class MomentumBreakoutStrategy(BaseStrategy):
     Se perder a mínima, envia SHORT.
     """
     def __init__(self, asset: str, sensitivity: float = 0.01):
-        super().__init__(asset, "15m")
+        super().__init__(asset, "1h")
         # Menor sensibilidade (0.005) -> mais agressivo -> menor lookback
         # Base = 20 para 0.01
         self.lookback_period = max(5, int(20 * (sensitivity / 0.01)))
@@ -117,7 +117,7 @@ class TrendFollowingStrategy(BaseStrategy):
     Lógica: Seguir a tendência macro usando EMA50 e gatilho de entrada via EMA20 (Pullback/Cruzamento).
     """
     def __init__(self, asset: str, sensitivity: float = 0.01):
-        super().__init__(asset, "15m")
+        super().__init__(asset, "1h")
         self.trend = "NEUTRAL"
         # Menor = mais agressivo -> médias mais rápidas
         self.ema_macro = max(20, int(50 * (sensitivity / 0.01)))
