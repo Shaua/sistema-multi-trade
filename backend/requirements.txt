@@ -8,8 +8,9 @@ alembic
 python-dotenv
 ccxt
 yfinance
-psycopg2-binary==2.9.9a p s c h e d u l e r  
- PyJWT==2.8.0
+psycopg2-binary==2.9.9
+apscheduler
+PyJWT==2.8.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.9
 tenacity
