@@ -1,0 +1,13 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+.env
+trader.db
+backend/trader.db
+backend/.env
+
+# Node
+node_modules/
+dist/
+.DS_Store
