@@ -259,7 +259,7 @@ async def get_markets(db: Session = Depends(get_db), current_user: str = Depends
             "stop_loss": t.stop_loss,
             "take_profit": t.take_profit,
             "volume": t.volume,
-            "price": f"$ {current_price:,.2f}",
+            "price": f"$ {current_price:,.4f}" if current_price < 10 else f"$ {current_price:,.2f}",
             "metric": f"PnL: $ {live_pnl:,.4f}",
             "reason": t.reason,
         })
