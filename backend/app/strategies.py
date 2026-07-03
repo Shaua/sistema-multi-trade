@@ -41,10 +41,15 @@ class MeanReversionStrategy(BaseStrategy):
         distance = (current_price - self.moving_average) / self.moving_average
 
         signal = "NEUTRAL"
-        if distance < -self.deviation_threshold:
-            signal = "LONG" # Preço muito abaixo da média -> Comprar (Reversão para cima)
-        elif distance > self.deviation_threshold:
-            signal = "SHORT" # Preço muito acima da média -> Vender (Reversão para baixo)
+        
+        # Confirmação de reversão usando os dois últimos candles fechados
+        last_close = historical_data[-2][4] if len(historical_data) > 1 else current_price
+        prev_close = historical_data[-3][4] if len(historical_data) > 2 else last_close
+
+        if distance < -self.deviation_threshold and last_close > prev_close:
+            signal = "LONG" # Preço muito abaixo da média E começou a subir -> Comprar
+        elif distance > self.deviation_threshold and last_close < prev_close:
+            signal = "SHORT" # Preço muito acima da média E começou a cair -> Vender
 
         return {
             "asset": self.asset,

@@ -91,9 +91,9 @@ async def trading_loop():
                         
                         trigger_distance = trade.entry_price * settings.trailing_stop_activation
                         if trade.highest_price >= trigger_distance:
-                            new_sl = round(trade.highest_price * (1.0 - settings.trailing_stop_distance), 2)
+                            new_sl = round(trade.highest_price * (1.0 - settings.trailing_stop_distance), 6)
                             if new_sl > trade.stop_loss:
-                                print(f"[Trailing Stop] LONG {trade.asset} SL movido de {trade.stop_loss} para {new_sl:.2f}")
+                                print(f"[Trailing Stop] LONG {trade.asset} SL movido de {trade.stop_loss} para {new_sl:.6f}")
                                 trade.stop_loss = new_sl
                                 asyncio.create_task(notifier.send_alert(
                                     title="Trailing Stop Acionado 📈",
@@ -113,9 +113,9 @@ async def trading_loop():
 
                         trigger_distance = trade.entry_price * (2.0 - settings.trailing_stop_activation)
                         if trade.highest_price <= trigger_distance:
-                            new_sl = round(trade.highest_price * (1.0 + settings.trailing_stop_distance), 2)
+                            new_sl = round(trade.highest_price * (1.0 + settings.trailing_stop_distance), 6)
                             if new_sl < trade.stop_loss:
-                                print(f"[Trailing Stop] SHORT {trade.asset} SL movido de {trade.stop_loss} para {new_sl:.2f}")
+                                print(f"[Trailing Stop] SHORT {trade.asset} SL movido de {trade.stop_loss} para {new_sl:.6f}")
                                 trade.stop_loss = new_sl
                                 asyncio.create_task(notifier.send_alert(
                                     title="Trailing Stop Acionado 📉",
@@ -279,11 +279,11 @@ async def trading_loop():
                                     tp_distance_pct = 0.04
 
                                     if signal == "LONG":
-                                        stop_loss  = round(current_price * (1 - sl_distance_pct), 2)
-                                        take_profit = round(current_price * (1 + tp_distance_pct), 2)
+                                        stop_loss  = round(current_price * (1 - sl_distance_pct), 6)
+                                        take_profit = round(current_price * (1 + tp_distance_pct), 6)
                                     else:
-                                        stop_loss  = round(current_price * (1 + sl_distance_pct), 2)
-                                        take_profit = round(current_price * (1 - tp_distance_pct), 2)
+                                        stop_loss  = round(current_price * (1 + sl_distance_pct), 6)
+                                        take_profit = round(current_price * (1 - tp_distance_pct), 6)
 
                                     reduction = risk_engine.check_correlation_exposure(
                                         strategy.asset,
@@ -310,7 +310,7 @@ async def trading_loop():
                                             asset=strategy.asset,
                                             strategy=strategy.__class__.__name__,
                                             direction=signal,
-                                            entry_price=round(entry_price, 2),
+                                            entry_price=round(entry_price, 6),
                                             stop_loss=stop_loss,
                                             take_profit=take_profit,
                                             volume=volume,
