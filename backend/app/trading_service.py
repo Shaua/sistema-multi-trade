@@ -321,7 +321,7 @@ async def trading_loop():
                                             take_profit=take_profit,
                                             volume=volume,
                                             status="OPEN",
-                                            reason=analysis.get("motivo_entrada", "Aprovado via IA")
+                                            reason=analysis.get("motivo_entrada") or "Aprovado via IA"
                                         )
                                         db.add(new_trade)
                                         open_trades.append(new_trade)
@@ -334,7 +334,7 @@ async def trading_loop():
                                         ))
 
                                 else:
-                                    motivo = analysis.get("motivo_entrada", "Sinal rejeitado pela IA")
+                                    motivo = analysis.get("motivo_entrada") or "Sinal rejeitado pela IA"
                                     
                                     new_signal = Signal(
                                         asset=strategy.asset,
