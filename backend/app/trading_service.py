@@ -260,11 +260,11 @@ async def trading_loop():
                                             asset=strategy.asset,
                                             strategy=strategy.__class__.__name__,
                                             signal=signal,
-                                            market_context={
+                                            market_context=analysis_result.get("suggested_context", {
                                                 "volatility": "normal",
                                                 "trend": "bullish" if signal == "LONG" else "bearish",
                                                 "metric": analysis_result["metric"]
-                                            }
+                                            })
                                         )
                                         
                                 # Pausa de 4.1 segundos garantida após cada chamada à IA para NUNCA estourar
@@ -275,15 +275,21 @@ async def trading_loop():
                                 print(f"[IA - {strategy.asset}] Confiança: {confidence:.0%} | Risco: {analysis.get('nivel_risco')}")
 
                                 if confidence >= settings.ai_confidence_threshold:
-                                    sl_distance_pct = 0.02
-                                    tp_distance_pct = 0.04
-
-                                    if signal == "LONG":
-                                        stop_loss  = round(current_price * (1 - sl_distance_pct), 6)
-                                        take_profit = round(current_price * (1 + tp_distance_pct), 6)
+                                    suggested_sl = analysis_result.get("suggested_sl")
+                                    suggested_tp = analysis_result.get("suggested_tp")
+                                    
+                                    if suggested_sl is not None and suggested_tp is not None:
+                                        stop_loss = suggested_sl
+                                        take_profit = suggested_tp
                                     else:
-                                        stop_loss  = round(current_price * (1 + sl_distance_pct), 6)
-                                        take_profit = round(current_price * (1 - tp_distance_pct), 6)
+                                        sl_distance_pct = 0.02
+                                        tp_distance_pct = 0.04
+                                        if signal == "LONG":
+                                            stop_loss  = round(current_price * (1 - sl_distance_pct), 6)
+                                            take_profit = round(current_price * (1 + tp_distance_pct), 6)
+                                        else:
+                                            stop_loss  = round(current_price * (1 + sl_distance_pct), 6)
+                                            take_profit = round(current_price * (1 - tp_distance_pct), 6)
 
                                     reduction = risk_engine.check_correlation_exposure(
                                         strategy.asset,
@@ -291,7 +297,7 @@ async def trading_loop():
                                     )
                                     
                                     risk_amount = real_balance * settings.max_risk_per_trade
-                                    sl_distance_points = current_price * sl_distance_pct
+                                    sl_distance_points = abs(current_price - stop_loss)
                                     raw_volume = risk_amount / sl_distance_points if sl_distance_points > 0 else 0
                                     volume = max(round(raw_volume * reduction, 3), 0.001)
 
