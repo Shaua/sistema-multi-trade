@@ -232,13 +232,17 @@ async def get_markets(db: Session = Depends(get_db), current_user: str = Depends
     """Retorna os trades abertos com preço atual e PnL em tempo real."""
     trades = db.query(models.Trade).filter(models.Trade.status == "OPEN").all()
 
+    from .trading_service import _last_valid_price
+
     result = []
     for t in trades:
         try:
             broker = broker_factory.get_broker(t.asset)
             current_price = await broker.get_current_price(t.asset)
+            if current_price == 0.0:
+                current_price = _last_valid_price.get(t.asset, t.entry_price or 0.0)
         except Exception:
-            current_price = t.entry_price or 0.0
+            current_price = _last_valid_price.get(t.asset, t.entry_price or 0.0)
 
         # PnL flutuante em tempo real
         if t.entry_price and t.volume:
