@@ -86,7 +86,7 @@ class MomentumBreakoutStrategy(BaseStrategy):
     Se perder a mínima, envia SHORT.
     """
     def __init__(self, asset: str, sensitivity: float = 0.01):
-        super().__init__(asset, "1h")
+        super().__init__(asset, "4h")
         # Menor sensibilidade (0.005) -> mais agressivo -> menor lookback
         # Base = 20 para 0.01
         self.lookback_period = max(5, int(20 * (sensitivity / 0.01)))
@@ -118,26 +118,35 @@ class MomentumBreakoutStrategy(BaseStrategy):
             avg_volume = sum(volumes[:-1]) / len(volumes[:-1]) if len(volumes) > 1 else 0
             last_closed_volume = historical_data[-2][5] if len(historical_data) > 1 else 0
             
+            atr = calculate_atr(highs, lows, closes[:-1], 14)
+            
             metric_str = f"Res: {round(resistance, 2)} / Sup: {round(support, 2)}"
             
-            # Condição de rompimento com Filtro de Distância / Pullback e Tendência (EMA200)
+            max_dist_ema = 0.08 # Max 8% dist from EMA200
+            dist_ema = abs(current_price - ema200) / ema200 if ema200 > 0 else 0
+            
             if current_price > resistance and current_price > ema200:
-                if current_price <= resistance * 1.01:
+                if current_price <= resistance * 1.01 and dist_ema <= max_dist_ema and last_closed_volume > avg_volume * 1.5:
                     signal = "LONG"
-                    # SL no suporte do canal ou no meio do canal, TP projetando a altura do canal
-                    channel_height = resistance - support
-                    suggested_sl = round(resistance - (channel_height * 0.5), 6) # Meio do canal
-                    suggested_tp = round(current_price + (channel_height * 1.5), 6)
+                    suggested_sl = round(current_price - (2 * atr), 6) if atr > 0 else round(current_price * 0.98, 6)
+                    suggested_tp = round(current_price + (4 * atr), 6) if atr > 0 else round(current_price * 1.04, 6)
                 else:
-                    metric_str += f" (Rompimento LONG distante)"
+                    reasons = []
+                    if current_price > resistance * 1.01: reasons.append("distante")
+                    if dist_ema > max_dist_ema: reasons.append("esticado")
+                    if last_closed_volume <= avg_volume * 1.5: reasons.append("baixo volume")
+                    metric_str += f" (Rejeitado LONG: {', '.join(reasons)})"
             elif current_price < support and current_price < ema200:
-                if current_price >= support * 0.99:
+                if current_price >= support * 0.99 and dist_ema <= max_dist_ema and last_closed_volume > avg_volume * 1.5:
                     signal = "SHORT"
-                    channel_height = resistance - support
-                    suggested_sl = round(support + (channel_height * 0.5), 6) # Meio do canal
-                    suggested_tp = round(current_price - (channel_height * 1.5), 6)
+                    suggested_sl = round(current_price + (2 * atr), 6) if atr > 0 else round(current_price * 1.02, 6)
+                    suggested_tp = round(current_price - (4 * atr), 6) if atr > 0 else round(current_price * 0.96, 6)
                 else:
-                    metric_str += f" (Rompimento SHORT distante)"
+                    reasons = []
+                    if current_price < support * 0.99: reasons.append("distante")
+                    if dist_ema > max_dist_ema: reasons.append("esticado")
+                    if last_closed_volume <= avg_volume * 1.5: reasons.append("baixo volume")
+                    metric_str += f" (Rejeitado SHORT: {', '.join(reasons)})"
 
         return {
             "asset": self.asset,
