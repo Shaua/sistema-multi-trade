@@ -235,7 +235,7 @@ async def trading_loop():
 
                         if signal != "NEUTRAL":
                             now = datetime.utcnow()
-                            cooldown_key = f"{strategy.asset}_{signal}"
+                            cooldown_key = f"{strategy.asset}_{strategy.__class__.__name__}_{signal}"
                             
                             # Use global dictionary for cooldowns since strategy instances are recreated
                             global _ai_cooldowns
