@@ -362,6 +362,11 @@ function App() {
   const [stats, setStats] = useState<any>(null);
   const [markets, setMarkets] = useState<any[]>([]);
   const [history, setHistory] = useState<any[]>([]);
+  const [historyStartDate, setHistoryStartDate] = useState('');
+  const [historyEndDate, setHistoryEndDate] = useState('');
+  const [historyAsset, setHistoryAsset] = useState('');
+  const [historyStrategy, setHistoryStrategy] = useState('');
+  const [historySearch, setHistorySearch] = useState('');
   const [risk, setRisk] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [loading, setLoading] = useState(true);
@@ -616,33 +621,79 @@ function App() {
           </>
         )}
 
-        {activeTab === 'history' && (
-          <>
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-              <div>
-                <h2 className="text-3xl font-semibold mb-1">Histórico de Operações</h2>
-                <p className="text-slate-400">Registro completo de todos os trades fechados.</p>
+        {activeTab === 'history' && (() => {
+          const filteredHistory = history.filter((trade: any) => {
+            let match = true;
+            if (historyStartDate && trade.closed_at) {
+              if (new Date(trade.closed_at) < new Date(historyStartDate + 'T00:00:00')) match = false;
+            }
+            if (historyEndDate && trade.closed_at) {
+              if (new Date(trade.closed_at) > new Date(historyEndDate + 'T23:59:59')) match = false;
+            }
+            if (historyAsset && !trade.asset?.toLowerCase().includes(historyAsset.toLowerCase())) match = false;
+            if (historyStrategy && !trade.strategy?.toLowerCase().includes(historyStrategy.toLowerCase())) match = false;
+            if (historySearch && !trade.reason?.toLowerCase().includes(historySearch.toLowerCase())) match = false;
+            return match;
+          });
+
+          const formatDate = (dateString: string) => {
+            if (!dateString) return '---';
+            const date = new Date(dateString);
+            return date.toLocaleString('pt-BR');
+          };
+
+          return (
+            <>
+              <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                  <h2 className="text-3xl font-semibold mb-1">Histórico de Operações</h2>
+                  <p className="text-slate-400">Registro completo de todos os trades fechados.</p>
+                </div>
+              </header>
+              
+              <div className="bg-[#1e293b] p-4 rounded-2xl border border-slate-800 mb-6 grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1">Data Início</label>
+                  <input type="date" value={historyStartDate} onChange={e => setHistoryStartDate(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1">Data Fim</label>
+                  <input type="date" value={historyEndDate} onChange={e => setHistoryEndDate(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1">Ativo (Moeda)</label>
+                  <input type="text" placeholder="Ex: BTC/USD" value={historyAsset} onChange={e => setHistoryAsset(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1">Estratégia</label>
+                  <input type="text" placeholder="Ex: MeanReversion" value={historyStrategy} onChange={e => setHistoryStrategy(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1">Buscar (Justificativa)</label>
+                  <input type="text" placeholder="Buscar..." value={historySearch} onChange={e => setHistorySearch(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500" />
+                </div>
               </div>
-            </header>
-            
-            <div className="bg-[#1e293b] rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-slate-800/50 text-slate-300 text-sm">
-                      <th className="px-6 py-4 font-medium">Ativo</th>
-                      <th className="px-6 py-4 font-medium">Estratégia</th>
-                      <th className="px-6 py-4 font-medium">Direção</th>
-                      <th className="px-6 py-4 font-medium">Preço Entrada</th>
-                      <th className="px-6 py-4 font-medium">Preço Saída</th>
-                      <th className="px-6 py-4 font-medium">PnL</th>
-                      <th className="px-6 py-4 font-medium">Justificativa IA</th>
-                      <th className="px-6 py-4 font-medium text-center">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800/50">
-                    {history.map((trade: any) => (
+
+              <div className="bg-[#1e293b] rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-800/50 text-slate-300 text-sm">
+                        <th className="px-6 py-4 font-medium">Data/Hora</th>
+                        <th className="px-6 py-4 font-medium">Ativo</th>
+                        <th className="px-6 py-4 font-medium">Estratégia</th>
+                        <th className="px-6 py-4 font-medium">Direção</th>
+                        <th className="px-6 py-4 font-medium">Preço Entrada</th>
+                        <th className="px-6 py-4 font-medium">Preço Saída</th>
+                        <th className="px-6 py-4 font-medium">PnL</th>
+                        <th className="px-6 py-4 font-medium">Justificativa IA</th>
+                        <th className="px-6 py-4 font-medium text-center">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/50">
+                      {filteredHistory.map((trade: any) => (
                       <tr key={trade.id} className="hover:bg-slate-800/20 transition-colors">
+                        <td className="px-6 py-4 text-slate-300 text-sm whitespace-nowrap">{formatDate(trade.closed_at)}</td>
                         <td className="px-6 py-4 font-medium">{trade.asset}</td>
                         <td className="px-6 py-4 text-slate-400 text-sm">{trade.strategy}</td>
                         <td className="px-6 py-4">
@@ -666,17 +717,18 @@ function App() {
                         </td>
                       </tr>
                     ))}
-                    {history.length === 0 && (
-                      <tr>
-                        <td colSpan={8} className="px-6 py-8 text-center text-slate-500">Nenhum trade fechado ainda.</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                      {filteredHistory.length === 0 && (
+                        <tr>
+                          <td colSpan={9} className="px-6 py-8 text-center text-slate-500">Nenhum trade encontrado.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
-          </>
-        )}
+            </>
+          );
+        })()}
 
         {activeTab === 'metrics' && (
           <>
