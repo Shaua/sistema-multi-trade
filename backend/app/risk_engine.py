@@ -8,11 +8,13 @@ class RiskEngine:
         """
         self.max_risk_per_trade = max_risk_per_trade
 
-        # Matriz de correlação simplificada (0 a 1)
         self.correlation_matrix = {
             "US100": {"SPX500": 0.85, "BTC/USD": 0.4, "XAU/USD": 0.1, "WTI": 0.2},
             "SPX500": {"US100": 0.85, "BTC/USD": 0.35, "XAU/USD": 0.15, "WTI": 0.25},
-            "BTC/USD": {"US100": 0.4, "SPX500": 0.35, "XAU/USD": 0.2, "WTI": 0.1},
+            "BTC/USD": {"US100": 0.4, "SPX500": 0.35, "XAU/USD": 0.2, "WTI": 0.1, "ETH/USDT": 0.85, "SOL/USDT": 0.8, "TAO/USDT": 0.75},
+            "ETH/USDT": {"BTC/USD": 0.85, "SOL/USDT": 0.85, "TAO/USDT": 0.8},
+            "SOL/USDT": {"BTC/USD": 0.8, "ETH/USDT": 0.85, "TAO/USDT": 0.75},
+            "TAO/USDT": {"BTC/USD": 0.75, "ETH/USDT": 0.8, "SOL/USDT": 0.75},
             "XAU/USD": {"US100": 0.1, "SPX500": 0.15, "BTC/USD": 0.2, "WTI": 0.3},
             "WTI": {"US100": 0.2, "SPX500": 0.25, "BTC/USD": 0.1, "XAU/USD": 0.3},
         }

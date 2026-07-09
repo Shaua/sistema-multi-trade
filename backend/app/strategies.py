@@ -1,5 +1,5 @@
 from typing import Dict, Any
-from .indicators import calculate_sma, calculate_donchian_channel, calculate_ema, calculate_rsi, calculate_atr
+from .indicators import calculate_sma, calculate_donchian_channel, calculate_ema, calculate_rsi, calculate_atr, calculate_adx
 import random
 class BaseStrategy:
     def __init__(self, asset: str, timeframe: str):
@@ -38,6 +38,7 @@ class MeanReversionStrategy(BaseStrategy):
         self.moving_average = calculate_sma(closes, self.ma_period)
         rsi = calculate_rsi(closes, 14)
         atr = calculate_atr(highs, lows, closes, 14)
+        ema200 = calculate_ema(closes, 200)
         
         if self.moving_average == 0.0:
             # Fallback
@@ -49,7 +50,8 @@ class MeanReversionStrategy(BaseStrategy):
         
         # Confirmação de reversão usando os dois últimos candles fechados
         last_close = historical_data[-2][4] if len(historical_data) > 1 else current_price
-        prev_close = historical_data[-3][4] if len(historical_data) > 2 else last_close
+        prev_high = historical_data[-3][2] if len(historical_data) > 2 else last_close
+        prev_low = historical_data[-3][3] if len(historical_data) > 2 else last_close
 
         suggested_sl = None
         suggested_tp = None
@@ -58,11 +60,11 @@ class MeanReversionStrategy(BaseStrategy):
         is_crypto = "/" in self.asset and "XAU" not in self.asset
         effective_threshold = self.deviation_threshold * 3 if is_crypto else self.deviation_threshold
 
-        if distance < -effective_threshold and last_close > prev_close and rsi < 30:
+        if distance < -effective_threshold and last_close > prev_high and rsi < 30 and (current_price > ema200 or ema200 == 0.0):
             signal = "LONG" # Preço muito abaixo da média, subindo E sobrevendido
             suggested_sl = round(current_price - (2 * atr), 6) if atr > 0 else None
             suggested_tp = round(current_price + (4 * atr), 6) if atr > 0 else None
-        elif distance > effective_threshold and last_close < prev_close and rsi > 70:
+        elif distance > effective_threshold and last_close < prev_low and rsi > 70 and (current_price < ema200 or ema200 == 0.0):
             signal = "SHORT" # Preço muito acima da média, caindo E sobrecomprado
             suggested_sl = round(current_price + (2 * atr), 6) if atr > 0 else None
             suggested_tp = round(current_price - (4 * atr), 6) if atr > 0 else None
@@ -192,8 +194,11 @@ class TrendFollowingStrategy(BaseStrategy):
             }
 
         closes = [candle[4] for candle in historical_data]
+        highs = [candle[2] for candle in historical_data]
+        lows = [candle[3] for candle in historical_data]
         ema50 = calculate_ema(closes, self.ema_macro)
         ema20 = calculate_ema(closes, self.ema_micro)
+        adx = calculate_adx(highs, lows, closes, 14)
         
         # Último candle fechado (penúltimo da lista)
         last_close = closes[-2]
@@ -206,11 +211,11 @@ class TrendFollowingStrategy(BaseStrategy):
         # Lógica de Pullback / Crossover simplificada para mais entradas
         if self.trend == "UP":
             # Retomando a alta após pullback na média
-            if last_close <= ema20 and current_price > ema20:
+            if last_close <= ema20 and current_price > ema20 and adx > 25:
                 signal = "LONG"
         elif self.trend == "DOWN":
             # Retomando a baixa após pullback na média
-            if last_close >= ema20 and current_price < ema20:
+            if last_close >= ema20 and current_price < ema20 and adx > 25:
                 signal = "SHORT"
 
         return {
@@ -218,5 +223,5 @@ class TrendFollowingStrategy(BaseStrategy):
             "strategy": "Trend Following",
             "signal": signal,
             "price": current_price,
-            "metric": f"Tendência: {self.trend} (EMA50: {round(ema50, 2)})"
+            "metric": f"Tendência: {self.trend} (EMA50: {round(ema50, 2)}) | ADX: {round(adx, 2)}"
         }
