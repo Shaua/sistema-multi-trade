@@ -225,3 +225,75 @@ class TrendFollowingStrategy(BaseStrategy):
             "price": current_price,
             "metric": f"Tendência: {self.trend} (EMA50: {round(ema50, 2)}) | ADX: {round(adx, 2)}"
         }
+
+class CryptoDayTradingStrategy(BaseStrategy):
+    """
+    Estratégia Day Trade para Criptomoedas (15m).
+    Lógica: Seguir a tendência primária (EMA 200) e entrar em pullbacks (RSI) com confirmação de momento (Cruzamento EMA 9/21).
+    Gera mais entradas (pelo timeframe de 15m) mantendo alta probabilidade a favor da tendência.
+    """
+    def __init__(self, asset: str, sensitivity: float = 0.01):
+        super().__init__(asset, "15m")
+        self.ema_fast = 9
+        self.ema_slow = 21
+        self.ema_trend = 200
+
+    async def analyze(self, current_price: float, historical_data: list) -> Dict[str, Any]:
+        signal = "NEUTRAL"
+        
+        if not historical_data or len(historical_data) < self.ema_trend + 2:
+            return {
+                "asset": self.asset,
+                "strategy": "Crypto Day Trading",
+                "signal": signal,
+                "price": current_price,
+                "metric": "Aguardando dados"
+            }
+
+        closes = [candle[4] for candle in historical_data]
+        highs = [candle[2] for candle in historical_data]
+        lows = [candle[3] for candle in historical_data]
+        
+        ema9 = calculate_ema(closes, self.ema_fast)
+        ema21 = calculate_ema(closes, self.ema_slow)
+        ema200 = calculate_ema(closes, self.ema_trend)
+        rsi = calculate_rsi(closes, 14)
+        atr = calculate_atr(highs, lows, closes, 14)
+        
+        closes_prev = closes[:-1]
+        ema9_prev = calculate_ema(closes_prev, self.ema_fast)
+        ema21_prev = calculate_ema(closes_prev, self.ema_slow)
+
+        suggested_sl = None
+        suggested_tp = None
+        metric_str = f"RSI: {round(rsi, 2)} | EMA200: {round(ema200, 2)}"
+
+        if current_price > ema200:
+            if ema9 > ema21 and ema9_prev <= ema21_prev and rsi < 65:
+                signal = "LONG"
+                suggested_sl = round(current_price - (2.5 * atr), 6) if atr > 0 else round(current_price * 0.99, 6)
+                suggested_tp = round(current_price + (5 * atr), 6) if atr > 0 else round(current_price * 1.02, 6)
+                metric_str += " (Cruzamento Bullish)"
+        
+        elif current_price < ema200:
+            if ema9 < ema21 and ema9_prev >= ema21_prev and rsi > 35:
+                signal = "SHORT"
+                suggested_sl = round(current_price + (2.5 * atr), 6) if atr > 0 else round(current_price * 1.01, 6)
+                suggested_tp = round(current_price - (5 * atr), 6) if atr > 0 else round(current_price * 0.98, 6)
+                metric_str += " (Cruzamento Bearish)"
+
+        return {
+            "asset": self.asset,
+            "strategy": "Crypto Day Trading",
+            "signal": signal,
+            "price": current_price,
+            "metric": metric_str,
+            "suggested_sl": suggested_sl,
+            "suggested_tp": suggested_tp,
+            "suggested_context": {
+                "volatility": "daytrade_pullback",
+                "trend": f"{'bullish' if current_price > ema200 else 'bearish'} (EMA200)",
+                "metric": metric_str
+            }
+        }
+

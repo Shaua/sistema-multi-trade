@@ -7,7 +7,7 @@ from .ai_engine import ai_engine
 from .risk_engine import RiskEngine
 from .brokers.order_manager import order_manager
 from .brokers.broker_factory import broker_factory
-from .strategies import MomentumBreakoutStrategy, MeanReversionStrategy, TrendFollowingStrategy
+from .strategies import MomentumBreakoutStrategy, MeanReversionStrategy, TrendFollowingStrategy, CryptoDayTradingStrategy
 from .notifications import notifier
 
 risk_engine = RiskEngine()
@@ -184,6 +184,7 @@ async def trading_loop():
                     else:
                         estrategias_ativas.append(MomentumBreakoutStrategy(a, sensitivity))
                         estrategias_ativas.append(MeanReversionStrategy(a, sensitivity))
+                        estrategias_ativas.append(CryptoDayTradingStrategy(a, sensitivity))
 
                 for strategy in estrategias_ativas:
                     try:
