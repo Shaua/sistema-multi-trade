@@ -109,21 +109,23 @@ class AIEngine:
         Sinal (Direção): {signal}
         Contexto de Mercado: {json.dumps(market_context)}
         
-        Sua tarefa é aprovar ou não este sinal e explicar o racional da operação.
+        Sua tarefa é aprovar ou vetar este sinal e explicar detalhadamente o racional da operação.
         
-        REGRA CRÍTICA: Se a sua análise técnica indicar uma ação CONTRÁRIA ao Sinal sugerido pelo Algoritmo 
-        (ex: algoritmo pede SHORT, mas você identifica que houve quebra de resistência, o que é padrão de alta), 
-        você DEVE VETAR a operação. Para vetar, defina o 'grau_confianca' como 0.0 e preencha 'motivo_entrada' 
-        com a inconsistência encontrada.
+        REGRAS CRÍTICAS:
+        1. Se a sua análise técnica indicar uma ação CONTRÁRIA ao Sinal ou apontar LATERALIZAÇÃO sem tendência clara
+        (verifique métricas como ADX baixo ou cruzamentos constantes e divergentes), você DEVE VETAR a operação. 
+        2. Para vetar, defina o 'grau_confianca' como 0.0 e preencha obrigatoriamente 'motivo_entrada' 
+        com a inconsistência encontrada ou falta de contexto claro.
+        3. NUNCA deixe o campo 'motivo_entrada' vazio ou genérico. Explique detalhadamente o que você observou nas métricas (ex: RSI, ADX, Distância da Média) para basear sua aprovação ou veto.
         
         Retorne estritamente um JSON no seguinte formato:
         {{
-            "motivo_entrada": "Explicação técnica detalhada",
+            "motivo_entrada": "Explicação técnica detalhada e fundamentada",
             "motivo_saida": "Condição técnica para fechamento",
             "nivel_risco": "Baixo, Moderado ou Alto",
             "grau_confianca": 0.85
         }}
-        O grau de confiança deve ser numérico entre 0.0 e 1.0.
+        O grau de confiança deve ser numérico entre 0.0 e 1.0 (sendo 0.0 para rejeitar e acima de 0.70 para aprovar).
         """
 
         # 1. Tenta Gemini (com rate limit estrito global)

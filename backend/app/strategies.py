@@ -259,6 +259,7 @@ class CryptoDayTradingStrategy(BaseStrategy):
         ema200 = calculate_ema(closes, self.ema_trend)
         rsi = calculate_rsi(closes, 14)
         atr = calculate_atr(highs, lows, closes, 14)
+        adx = calculate_adx(highs, lows, closes, 14)
         
         closes_prev = closes[:-1]
         ema9_prev = calculate_ema(closes_prev, self.ema_fast)
@@ -266,20 +267,20 @@ class CryptoDayTradingStrategy(BaseStrategy):
 
         suggested_sl = None
         suggested_tp = None
-        metric_str = f"RSI: {round(rsi, 2)} | EMA200: {round(ema200, 2)}"
+        metric_str = f"RSI: {round(rsi, 2)} | ADX: {round(adx, 2)} | EMA200: {round(ema200, 2)}"
 
         if current_price > ema200:
-            if ema9 > ema21 and ema9_prev <= ema21_prev and rsi < 65:
+            if ema9 > ema21 and ema9_prev <= ema21_prev and rsi < 50 and adx > 25:
                 signal = "LONG"
-                suggested_sl = round(current_price - (2.5 * atr), 6) if atr > 0 else round(current_price * 0.99, 6)
-                suggested_tp = round(current_price + (5 * atr), 6) if atr > 0 else round(current_price * 1.02, 6)
+                suggested_sl = round(current_price - (3.0 * atr), 6) if atr > 0 else round(current_price * 0.99, 6)
+                suggested_tp = round(current_price + (5.0 * atr), 6) if atr > 0 else round(current_price * 1.02, 6)
                 metric_str += " (Cruzamento Bullish)"
         
         elif current_price < ema200:
-            if ema9 < ema21 and ema9_prev >= ema21_prev and rsi > 35:
+            if ema9 < ema21 and ema9_prev >= ema21_prev and rsi > 50 and adx > 25:
                 signal = "SHORT"
-                suggested_sl = round(current_price + (2.5 * atr), 6) if atr > 0 else round(current_price * 1.01, 6)
-                suggested_tp = round(current_price - (5 * atr), 6) if atr > 0 else round(current_price * 0.98, 6)
+                suggested_sl = round(current_price + (3.0 * atr), 6) if atr > 0 else round(current_price * 1.01, 6)
+                suggested_tp = round(current_price - (5.0 * atr), 6) if atr > 0 else round(current_price * 0.98, 6)
                 metric_str += " (Cruzamento Bearish)"
 
         return {
