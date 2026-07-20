@@ -13,6 +13,47 @@ services:
       - "5432:5432"
     volumes:
       - trader_pgdata:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: trader_backend
+    restart: always
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://trader_user:trader_password@db:5432/trader_db
+      # Add other environment variables as needed or use an env_file
+      # - BINANCE_API_KEY=your_key
+      # - BINANCE_API_SECRET=your_secret
+      # - GEMINI_API_KEY=your_key
+      # - TELEGRAM_BOT_TOKEN=your_token
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/.env:/app/.env # Optional: Mount local .env file if available
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: trader_frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - app-network
 
 volumes:
   trader_pgdata:
+
+networks:
+  app-network:
+    driver: bridge
