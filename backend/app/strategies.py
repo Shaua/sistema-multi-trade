@@ -131,28 +131,15 @@ class MomentumBreakoutStrategy(BaseStrategy):
             max_dist_ema = 0.08 # Max 8% dist from EMA200
             dist_ema = abs(current_price - ema200) / ema200 if ema200 > 0 else 0
             
-            if current_price > resistance and current_price > ema200:
-                if current_price <= resistance * 1.01 and dist_ema <= max_dist_ema and last_closed_volume >= avg_volume * 0.5:
-                    signal = "LONG"
-                    suggested_sl = round(current_price - (2 * atr), 6) if atr > 0 else round(current_price * 0.98, 6)
-                    suggested_tp = round(current_price + (4 * atr), 6) if atr > 0 else round(current_price * 1.04, 6)
-                else:
-                    reasons = []
-                    if current_price > resistance * 1.01: reasons.append("distante")
-                    if dist_ema > max_dist_ema: reasons.append("esticado")
-                    if last_closed_volume < avg_volume * 0.5: reasons.append("baixo volume")
-                    metric_str += f" (Rejeitado LONG: {', '.join(reasons)})"
-            elif current_price < support and current_price < ema200:
-                if current_price >= support * 0.99 and dist_ema <= max_dist_ema and last_closed_volume >= avg_volume * 0.5:
-                    signal = "SHORT"
-                    suggested_sl = round(current_price + (2 * atr), 6) if atr > 0 else round(current_price * 1.02, 6)
-                    suggested_tp = round(current_price - (4 * atr), 6) if atr > 0 else round(current_price * 0.96, 6)
-                else:
-                    reasons = []
-                    if current_price < support * 0.99: reasons.append("distante")
-                    if dist_ema > max_dist_ema: reasons.append("esticado")
-                    if last_closed_volume < avg_volume * 0.5: reasons.append("baixo volume")
-                    metric_str += f" (Rejeitado SHORT: {', '.join(reasons)})"
+            # TESTE: Relaxamento total das condições para forçar trades e testar o sistema.
+            if current_price > ema200:
+                signal = "LONG"
+                suggested_sl = round(current_price * 0.98, 6)
+                suggested_tp = round(current_price * 1.04, 6)
+            elif current_price < ema200:
+                signal = "SHORT"
+                suggested_sl = round(current_price * 1.02, 6)
+                suggested_tp = round(current_price * 0.96, 6)
 
         return {
             "asset": self.asset,
