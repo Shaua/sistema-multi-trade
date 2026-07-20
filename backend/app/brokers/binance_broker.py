@@ -147,7 +147,7 @@ class BinanceBroker(BaseBroker):
                 'symbol': sym,
                 'side': 'BUY' if side.upper() in ('BUY', 'LONG') else 'SELL',
                 'type': 'MARKET',
-                'quantity': volume,
+                'quantity': round(float(volume), 2),
             })
             if 'code' in data:
                 raise Exception(f"Binance error {data['code']}: {data.get('msg')}")
@@ -180,8 +180,8 @@ class BinanceBroker(BaseBroker):
                 'symbol': sym,
                 'side': 'SELL' if side.upper() in ('BUY', 'LONG') else 'BUY',
                 'type': 'STOP_MARKET',
-                'stopPrice': stop_price,
-                'quantity': volume,
+                'stopPrice': round(float(stop_price), 2),
+                'quantity': round(float(volume), 2),
                 'closePosition': 'false',
             })
             if 'code' in data:
