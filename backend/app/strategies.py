@@ -99,60 +99,18 @@ class MomentumBreakoutStrategy(BaseStrategy):
         self.sensitivity = sensitivity
 
     async def analyze(self, current_price: float, historical_data: list) -> Dict[str, Any]:
-        signal = "NEUTRAL"
-        resistance = 0.0
-        support = 0.0
-        metric_str = "Aguardando dados"
-        suggested_sl = None
-        suggested_tp = None
-        ema200 = 0.0
-
-        # historical_data format: [ [ts, open, high, low, close, vol], ... ]
-        if historical_data and len(historical_data) >= max(200, self.lookback_period + 1):
-            # Pegar todos exceto o último candle (que ainda não fechou) para o cálculo do canal
-            highs = [candle[2] for candle in historical_data[:-1]]
-            lows = [candle[3] for candle in historical_data[:-1]]
-            closes = [candle[4] for candle in historical_data]
-            
-            resistance, support = calculate_donchian_channel(highs, lows, self.lookback_period)
-            ema200 = calculate_ema(closes, 200)
-            
-            # Precisamos dos volumes dos ultimos N candles, incluindo o ultimo fechado
-            recent_candles = historical_data[-(self.lookback_period+1):]
-            volumes = [candle[5] for candle in recent_candles]
-            
-            avg_volume = sum(volumes[:-1]) / len(volumes[:-1]) if len(volumes) > 1 else 0
-            last_closed_volume = historical_data[-2][5] if len(historical_data) > 1 else 0
-            
-            atr = calculate_atr(highs, lows, closes[:-1], 14)
-            
-            metric_str = f"Res: {round(resistance, 2)} / Sup: {round(support, 2)}"
-            
-            max_dist_ema = 0.08 # Max 8% dist from EMA200
-            dist_ema = abs(current_price - ema200) / ema200 if ema200 > 0 else 0
-            
-            # TESTE: Relaxamento total das condições para forçar trades e testar o sistema.
-            if current_price > ema200:
-                signal = "LONG"
-                suggested_sl = round(current_price * 0.98, 6)
-                suggested_tp = round(current_price * 1.04, 6)
-            elif current_price < ema200:
-                signal = "SHORT"
-                suggested_sl = round(current_price * 1.02, 6)
-                suggested_tp = round(current_price * 0.96, 6)
-
         return {
             "asset": self.asset,
             "strategy": "Momentum Breakout",
-            "signal": signal,
+            "signal": "LONG",
             "price": current_price,
-            "metric": metric_str,
-            "suggested_sl": suggested_sl,
-            "suggested_tp": suggested_tp,
+            "metric": "Forced Test",
+            "suggested_sl": round(current_price * 0.98, 6),
+            "suggested_tp": round(current_price * 1.02, 6),
             "suggested_context": {
                 "volatility": "breakout",
-                "trend": f"{'bullish' if current_price > ema200 else 'bearish'} (EMA200: {round(ema200, 2)})",
-                "metric": metric_str
+                "trend": "bullish",
+                "metric": "Forced Test"
             }
         }
 
