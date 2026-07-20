@@ -364,16 +364,16 @@ def update_settings(payload: SettingsUpdate, db: Session = Depends(get_db), curr
     # Path para o .env no diretório pai do backend (onde fica o venv, ou dentro do backend)
     env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env')
     
-    if payload.binance_api_key is not None and payload.binance_api_key != "":
+    if payload.binance_api_key and payload.binance_api_key not in ["", "********"]:
         set_key(env_path, "BINANCE_API_KEY", payload.binance_api_key)
         os.environ["BINANCE_API_KEY"] = payload.binance_api_key
-    if payload.binance_api_secret is not None and payload.binance_api_secret != "":
+    if payload.binance_api_secret and payload.binance_api_secret not in ["", "********"]:
         set_key(env_path, "BINANCE_API_SECRET", payload.binance_api_secret)
         os.environ["BINANCE_API_SECRET"] = payload.binance_api_secret
-    if payload.gemini_api_key is not None and payload.gemini_api_key != "":
+    if payload.gemini_api_key and payload.gemini_api_key not in ["", "********"]:
         set_key(env_path, "GEMINI_API_KEY", payload.gemini_api_key)
         os.environ["GEMINI_API_KEY"] = payload.gemini_api_key
-    if payload.telegram_bot_token is not None and payload.telegram_bot_token != "":
+    if payload.telegram_bot_token and payload.telegram_bot_token not in ["", "********"]:
         set_key(env_path, "TELEGRAM_BOT_TOKEN", payload.telegram_bot_token)
         os.environ["TELEGRAM_BOT_TOKEN"] = payload.telegram_bot_token
 
