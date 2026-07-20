@@ -245,8 +245,8 @@ async def trading_loop():
                                 
                             last_check = _ai_cooldowns.get(cooldown_key)
                             
-                            # Cooldown de 1 minuto (60s) para o mesmo sinal no mesmo ativo (temporário para testes)
-                            if last_check and (now - last_check).total_seconds() < 60:
+                            # Cooldown de 1 hora (3600s) para o mesmo sinal no mesmo ativo para evitar spam na IA e reentradas no mesmo candle
+                            if last_check and (now - last_check).total_seconds() < 3600:
                                 continue
 
                             _ai_cooldowns[cooldown_key] = now
