@@ -112,15 +112,15 @@ class AIEngine:
         Sua tarefa é aprovar ou vetar este sinal e explicar detalhadamente o racional da operação.
         
         REGRAS CRÍTICAS:
-        1. Se a sua análise técnica indicar uma ação CONTRÁRIA ao Sinal ou apontar LATERALIZAÇÃO sem tendência clara
-        (verifique métricas como ADX baixo ou cruzamentos constantes e divergentes), você DEVE VETAR a operação. 
-        2. Para vetar, defina o 'grau_confianca' como 0.0 e preencha obrigatoriamente 'motivo_entrada' 
-        com a inconsistência encontrada ou falta de contexto claro.
-        3. NUNCA deixe o campo 'motivo_entrada' vazio ou genérico. Explique detalhadamente o que você observou nas métricas (ex: RSI, ADX, Distância da Média) para basear sua aprovação ou veto.
+        1. AVALIE APENAS com base nos dados fornecidos no 'Contexto de Mercado'. NÃO invente nem assuma valores de indicadores que não foram fornecidos (ex: ADX, RSI, MACD, etc, se não estiverem no json).
+        2. Se a sua análise técnica baseada exclusivamente no contexto fornecido indicar uma ação CONTRÁRIA ao Sinal ou apontar LATERALIZAÇÃO extrema sem tendência, você DEVE VETAR a operação. 
+        3. Para vetar, defina o 'grau_confianca' como 0.0 e preencha obrigatoriamente 'motivo_entrada' 
+        com a inconsistência encontrada no contexto fornecido.
+        4. Se o sinal fizer sentido com o contexto fornecido (ex: rompimento com aumento de volume, pullback na tendência), APROVE a operação com 'grau_confianca' acima de 0.65.
         
         Retorne estritamente um JSON no seguinte formato:
         {{
-            "motivo_entrada": "Explicação técnica detalhada e fundamentada",
+            "motivo_entrada": "Explicação técnica detalhada e fundamentada baseada apenas nos dados fornecidos",
             "motivo_saida": "Condição técnica para fechamento",
             "nivel_risco": "Baixo, Moderado ou Alto",
             "grau_confianca": 0.85
