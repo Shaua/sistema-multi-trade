@@ -26,6 +26,7 @@ class BinanceBroker(BaseBroker):
     def __init__(self):
         super().__init__()
         self._session: aiohttp.ClientSession | None = None
+        self._symbol_precisions: dict[str, int] = {}
 
     @property
     def _api_key(self):
@@ -133,6 +134,15 @@ class BinanceBroker(BaseBroker):
             print(f"[Binance Demo] Erro ao buscar preco de {symbol}: {e}")
             return 0.0
 
+    async def _load_exchange_info(self):
+        try:
+            data = await self._public_get('/fapi/v1/exchangeInfo')
+            if isinstance(data, dict) and 'symbols' in data:
+                for s in data['symbols']:
+                    self._symbol_precisions[s['symbol']] = s.get('quantityPrecision', 2)
+        except Exception as e:
+            print(f"[Binance Demo] Erro ao buscar exchangeInfo: {e}")
+
     async def place_market_order(self, symbol: str, side: str, volume: float) -> dict:
         print(f"[Binance Demo] Ordem {side} a Mercado | {symbol} | Vol: {volume}")
         sym = symbol.replace("/", "")
@@ -142,12 +152,20 @@ class BinanceBroker(BaseBroker):
         if not self._api_key:
             return {"status": "FILLED", "order_id": "DEMO_MOCK_123", "avg_price": await self.get_current_price(symbol)}
 
+        if not self._symbol_precisions:
+            await self._load_exchange_info()
+
+        precision = self._symbol_precisions.get(sym, 2)
+        qty = round(float(volume), precision)
+        if precision == 0:
+            qty = int(qty)
+
         try:
             data = await self._private_post('/fapi/v1/order', {
                 'symbol': sym,
                 'side': 'BUY' if side.upper() in ('BUY', 'LONG') else 'SELL',
                 'type': 'MARKET',
-                'quantity': round(float(volume), 2),
+                'quantity': qty,
             })
             if 'code' in data:
                 raise Exception(f"Binance error {data['code']}: {data.get('msg')}")
