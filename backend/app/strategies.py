@@ -270,14 +270,14 @@ class CryptoDayTradingStrategy(BaseStrategy):
         metric_str = f"RSI: {round(rsi, 2)} | ADX: {round(adx, 2)} | EMA200: {round(ema200, 2)}"
 
         if current_price > ema200:
-            if ema9 > ema21 and ema9_prev <= ema21_prev and rsi < 50 and adx > 25:
+            if ema9 > ema21 and ema9_prev <= ema21_prev and rsi < 70 and adx > 20:
                 signal = "LONG"
                 suggested_sl = round(current_price - (3.0 * atr), 6) if atr > 0 else round(current_price * 0.99, 6)
                 suggested_tp = round(current_price + (5.0 * atr), 6) if atr > 0 else round(current_price * 1.02, 6)
                 metric_str += " (Cruzamento Bullish)"
         
         elif current_price < ema200:
-            if ema9 < ema21 and ema9_prev >= ema21_prev and rsi > 50 and adx > 25:
+            if ema9 < ema21 and ema9_prev >= ema21_prev and rsi > 30 and adx > 20:
                 signal = "SHORT"
                 suggested_sl = round(current_price + (3.0 * atr), 6) if atr > 0 else round(current_price * 1.01, 6)
                 suggested_tp = round(current_price - (5.0 * atr), 6) if atr > 0 else round(current_price * 0.98, 6)

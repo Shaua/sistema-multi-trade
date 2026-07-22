@@ -127,9 +127,12 @@ class BinanceBroker(BaseBroker):
             if sym.endswith("USD"):
                 sym = sym + "T"
             data = await self._public_get('/fapi/v1/ticker/price', {'symbol': sym})
-            if isinstance(data, dict) and 'code' in data:
-                return 0.0
-            return float(data['price'])
+            if isinstance(data, dict):
+                if 'code' in data or 'price' not in data:
+                    return 0.0
+                return float(data['price'])
+            # Se for lista ou string ou algo inesperado
+            return 0.0
         except Exception as e:
             print(f"[Binance Demo] Erro ao buscar preco de {symbol}: {e}")
             return 0.0
